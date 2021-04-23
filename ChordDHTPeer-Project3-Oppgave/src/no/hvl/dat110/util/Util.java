@@ -42,22 +42,20 @@ public class Util {
 		// it modifies 'upper' and 'id' when lower > upper e.g. set (6, 2) in mod 10 = {6, 7, 8, 9, 0, 1, 2}
 		
 		// implement: read the descriptions above
-		boolean cond = false;
+		id = id.mod(Hash.addressSize());
+		lower = lower.mod(Hash.addressSize());
+		upper = upper.mod(Hash.addressSize());
 		
-		BigInteger modId = id.mod(Hash.addressSize());
-		BigInteger modLower = lower.mod(Hash.addressSize());
-		BigInteger modUpper = upper.mod(Hash.addressSize());
-
-		if (modId.compareTo(modUpper) <= 0 && modId.compareTo(modLower) >= 0) {
+		boolean cond = false;
+		if(lower.compareTo(upper) > 0) {
+			upper = upper.add(Hash.addressSize());
+			if (id.compareTo(lower) < 0) {
+				id = id.add(Hash.addressSize());
+			}
+			}
+		if (id.compareTo(lower) >= 0 && id.compareTo(upper) <= 0) {
 			cond = true;
 		}
-		else if(modUpper.compareTo(modLower) < 0) {
-			if (modId.compareTo(modUpper) >= 0 || modId.compareTo(modLower) <= 0) {
-				cond = true;
-				
-			}
-		}
-		
 		return cond;
 	}
 	

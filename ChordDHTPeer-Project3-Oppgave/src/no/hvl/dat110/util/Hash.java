@@ -57,11 +57,12 @@ public class Hash {
 		// compute the address size = 2 ^ number of bits
 		
 		// return the address size
-		double addressSize = Math.pow(2, bitSize());
 		
-		BigInteger k = BigDecimal.valueOf(addressSize).toBigInteger();
+		BigInteger k = new BigInteger("2");
 		
-		return k;
+		BigInteger addressSize = k.pow(bitSize());
+		
+		return addressSize;
 	}
 	
 	public static int bitSize() {

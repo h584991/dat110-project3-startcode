@@ -45,14 +45,13 @@ public class ChordLookup {
 		
 		NodeInterface stub = Util.getProcessStub(successor.getNodeName(), successor.getPort());
 		
-		if (Util.computeLogic(key, node.getNodeID().add(BigInteger.valueOf(1)), stub.getNodeID())) {
+		if (Util.computeLogic(key, node.getNodeID().add(new BigInteger("1")), stub.getNodeID())) {
 			return stub;
 			
 		}
 		
 		else {
-			NodeInterface predecessor = findHighestPredecessor(key);
-			return predecessor.findSuccessor(key);
+			return findHighestPredecessor(key).findSuccessor(key);
 			
 		}
 				
@@ -81,7 +80,7 @@ public class ChordLookup {
 		
 		for (int i = fingerTable.size()-1; i > 0; i--) {
 			NodeInterface finger = Util.getProcessStub(fingerTable.get(i).getNodeName(), fingerTable.get(i).getPort());
-			if (Util.computeLogic(finger.getNodeID(), node.getNodeID().add(BigInteger.valueOf(1)), key.subtract(BigInteger.valueOf(1)))) {
+			if (Util.computeLogic(finger.getNodeID(), node.getNodeID().add(new BigInteger("1")), key.subtract(new BigInteger("1")))) {
 				return finger;
 			}
 		}

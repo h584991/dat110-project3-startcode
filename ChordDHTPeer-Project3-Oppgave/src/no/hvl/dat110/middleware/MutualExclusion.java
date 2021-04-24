@@ -51,24 +51,44 @@ public class MutualExclusion {
 		
 		// clear the queueack before requesting for votes
 		
+		queueack.clear();
+		
 		// clear the mutexqueue
+		
+		mutexqueue.clear();
 		
 		// increment clock
 		
+		clock.increment();
+		
 		// adjust the clock on the message, by calling the setClock on the message
+		
+		message.setClock(clock.getClock());
 				
 		// wants to access resource - set the appropriate lock variable
-	
+		
+		WANTS_TO_ENTER_CS = true;
 		
 		// start MutualExclusion algorithm
 		
 		// first, removeDuplicatePeersBeforeVoting. A peer can contain 2 replicas of a file. This peer will appear twice
+		
+		List<Message> activenodes = removeDuplicatePeersBeforeVoting();
 
 		// multicast the message to activenodes (hint: use multicastMessage)
 		
+		multicastMessage(message, activenodes);
+		
 		// check that all replicas have replied (permission)
 		
+		boolean permission = areAllMessagesReturned(activenodes.size());
+		
 		// if yes, acquireLock
+		
+		if (permission) {
+			acquireLock();
+			node.broadcastUpdatetoPeers(updates);
+		}
 		
 		// node.broadcastUpdatetoPeers
 		
@@ -100,11 +120,33 @@ public class MutualExclusion {
 		
 		// increment the local clock
 		
+		clock.increment();
+		
 		// if message is from self, acknowledge, and call onMutexAcknowledgementReceived()
+		
+		if (node.getNodeID().compareTo(message.getNodeID()) == 0) {
+			onMutexAcknowledgementReceived(message);
+		}
 			
 		int caseid = -1;
 		
 		// write if statement to transition to the correct caseid
+		
+		if (!WANTS_TO_ENTER_CS && !CS_BUSY) {
+			caseid = 0;
+		}
+		
+		else if(CS_BUSY) {
+			caseid = 1;
+			
+		}
+		
+		else if (WANTS_TO_ENTER_CS) {
+			caseid = 2;
+		}
+		
+		
+		
 		// caseid=0: Receiver is not accessing shared resource and does not want to (send OK to sender)
 		// caseid=1: Receiver already has access to the resource (dont reply but queue the request)
 		// caseid=2: Receiver wants to access resource but is yet to - compare own message clock to received message's clock

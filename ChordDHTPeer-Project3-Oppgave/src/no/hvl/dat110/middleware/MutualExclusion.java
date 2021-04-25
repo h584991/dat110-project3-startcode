@@ -64,6 +64,7 @@ public class MutualExclusion {
 		// adjust the clock on the message, by calling the setClock on the message
 		
 		message.setClock(clock.getClock());
+
 				
 		// wants to access resource - set the appropriate lock variable
 		
@@ -85,19 +86,23 @@ public class MutualExclusion {
 		
 		// if yes, acquireLock
 		
+		
 		if (permission) {
 			acquireLock();
 			node.broadcastUpdatetoPeers(updates);
+			
 		}
 		
 		// node.broadcastUpdatetoPeers
 		
 		// clear the mutexqueue
 		
+		mutexqueue.clear();
+		
 		// return permission
 		
 		
-		return false;
+		return permission;
 	}
 	
 	// multicast message to other processes including self
@@ -122,37 +127,40 @@ public class MutualExclusion {
 		
 		clock.increment();
 		
+		System.out.println(message.getNodeIP());
 		// if message is from self, acknowledge, and call onMutexAcknowledgementReceived()
-		
 		if (node.getNodeID().compareTo(message.getNodeID()) == 0) {
+			message.setAcknowledged(true);
 			onMutexAcknowledgementReceived(message);
+			System.out.println("Test0");
 		}
+		else {
+			int caseid = -1;
 			
-		int caseid = -1;
-		
-		// write if statement to transition to the correct caseid
-		
-		if (!WANTS_TO_ENTER_CS && !CS_BUSY) {
-			caseid = 0;
-		}
-		
-		else if(CS_BUSY) {
-			caseid = 1;
+			// write if statement to transition to the correct caseid
 			
+			if (!WANTS_TO_ENTER_CS && !CS_BUSY) {
+				caseid = 0;
+			}
+			
+			else if(CS_BUSY) {
+				caseid = 1;
+			}
+			
+			else if (WANTS_TO_ENTER_CS) {
+				caseid = 2;
+			}
+			
+			
+			
+			// caseid=0: Receiver is not accessing shared resource and does not want to (send OK to sender)
+			// caseid=1: Receiver already has access to the resource (dont reply but queue the request)
+			// caseid=2: Receiver wants to access resource but is yet to - compare own message clock to received message's clock
+			
+			// check for decision
+			doDecisionAlgorithm(message, mutexqueue, caseid);
 		}
 		
-		else if (WANTS_TO_ENTER_CS) {
-			caseid = 2;
-		}
-		
-		
-		
-		// caseid=0: Receiver is not accessing shared resource and does not want to (send OK to sender)
-		// caseid=1: Receiver already has access to the resource (dont reply but queue the request)
-		// caseid=2: Receiver wants to access resource but is yet to - compare own message clock to received message's clock
-		
-		// check for decision
-		doDecisionAlgorithm(message, mutexqueue, caseid);
 	}
 	
 	public void doDecisionAlgorithm(Message message, List<Message> queue, int condition) throws RemoteException {
@@ -180,7 +188,7 @@ public class MutualExclusion {
 			case 1: {
 				
 				// queue this message
-				queueack.add(message);
+				queue.add(message);
 				break;
 			}
 			
@@ -206,7 +214,7 @@ public class MutualExclusion {
 				else if (sendingClock > ownClock) {
 					didSenderWin = false;
 				}
-				else {
+				else if (sendingClock == ownClock) {
 					if(message.getNodeID().compareTo(node.getNodeID()) == -1) {
 						didSenderWin = true;
 					}
@@ -220,10 +228,8 @@ public class MutualExclusion {
 					stub.onMutexAcknowledgementReceived(message);
 				}
 				else {
-					queueack.add(message);
+					queue.add(message);
 				}
-				
-
 				break;
 			}
 			

@@ -84,24 +84,27 @@ public class MutualExclusion {
 		
 		boolean permission = areAllMessagesReturned(activenodes.size());
 		
-		// if yes, acquireLock
+		System.out.println("permission: " + permission);
 		
+		// if yes, acquireLock
 		
 		if (permission) {
 			acquireLock();
-			node.broadcastUpdatetoPeers(updates);
 			
 		}
 		
 		// node.broadcastUpdatetoPeers
+		
+		if (CS_BUSY) {
+			node.broadcastUpdatetoPeers(updates);
+		}
 		
 		// clear the mutexqueue
 		
 		mutexqueue.clear();
 		
 		// return permission
-		
-		
+				
 		return permission;
 	}
 	
@@ -126,13 +129,11 @@ public class MutualExclusion {
 		// increment the local clock
 		
 		clock.increment();
-		
-		System.out.println(message.getNodeIP());
+
 		// if message is from self, acknowledge, and call onMutexAcknowledgementReceived()
 		if (node.getNodeID().compareTo(message.getNodeID()) == 0) {
 			message.setAcknowledged(true);
 			onMutexAcknowledgementReceived(message);
-			System.out.println("Test0");
 		}
 		else {
 			int caseid = -1;
@@ -277,6 +278,11 @@ public class MutualExclusion {
 		
 		if (queueack.size() == numvoters) {
 			answer = true;
+		}
+		
+		System.out.println("Answer: " + answer);
+		for (Message m : queueack) {
+			System.out.println(m.getNodeIP() + " " + m.isAcknowledged());
 		}
 		
 		queueack.clear();

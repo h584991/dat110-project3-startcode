@@ -280,11 +280,6 @@ public class MutualExclusion {
 			answer = true;
 		}
 		
-		System.out.println("Answer: " + answer);
-		for (Message m : queueack) {
-			System.out.println(m.getNodeIP() + " " + m.isAcknowledged());
-		}
-		
 		queueack.clear();
 
 		return answer;
